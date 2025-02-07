@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Planilla de Salarios</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Calculadora de Planilla de Salarios</h1>
+        <div class="form-container">
+            <form id="form-calculo" class="form">
+                <label for="nombres">Nombres:</label>
+                <input type="text" id="nombres" class="input" placeholder="Ingrese sus nombres" required>
+                <label for="apellidos">Apellidos:</label>
+                <input type="text" id="apellidos" class="input" placeholder="Ingrese sus apellidos" required>
+                <label for="cargo">Cargo:</label>
+                <input type="text" id="cargo" class="input" placeholder="Ingrese su cargo" required>
+                <label for="salario_bruto">Salario Bruto:</label>
+                <input type="number" id="salario_bruto" class="input" placeholder="Ingrese el salario bruto" required>
+                <button type="submit" class="btn">Calcular</button>
+            </form>
+        </div>
+
+        <div id="resultados" class="results" style="display: none;">
+            <h4>Resultados:</h4>
+            <ul class="result-list" id="resultado-lista"></ul>
+        </div>
+    </div>
+
+    <script>
+        function calcular(salarioBruto) {
+            let seguroSocial = salarioBruto <= 1000 ? salarioBruto * 0.030 : 30;
+            let afp = salarioBruto * 0.0725;
+            let ISR = salarioBruto - (seguroSocial + afp);
+            let isr = 0;
+            let patronalISS = salarioBruto * 0.075;
+            let patronalAFP = salarioBruto * 0.0875;
+
+            if (ISR > 472) {
+                if (ISR <= 895.24) {
+                    isr = (ISR - 472) * 0.1 + 17.67;
+                } else if (ISR <= 2038.10) {
+                    isr = (ISR - 895.24) * 0.2 + 60;
+                } else {
+                    isr = (ISR - 2038.10) * 0.3 + 288.57;
+                }
+            }
+
+            let salarioNeto = ISR - isr;
+
+            return {
+                "Salario Bruto": salarioBruto,
+                "Seguro Social": seguroSocial,
+                "AFP": afp,
+                "Base ISR": ISR,
+                "ISR": isr,
+                "Salario Líquido": salarioNeto,
+                "Patronal ISS": patronalISS,
+                "Patronal AFP": patronalAFP
+            };
+        }
+
+        document.getElementById("form-calculo").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const nombres = document.getElementById("nombres").value;
+            const apellidos = document.getElementById("apellidos").value;
+            const cargo = document.getElementById("cargo").value;
+            const salarioBruto = parseFloat(document.getElementById("salario_bruto").value);
+
+            if (!isNaN(salarioBruto) && salarioBruto > 0) {
+                const resultados = calcular(salarioBruto);
+                const listaResultados = document.getElementById("resultado-lista");
+                listaResultados.innerHTML = '';
+
+                // Agregar datos personales primero
+                const datosPersonales = [
+                    { label: "Nombres", value: nombres },
+                    { label: "Apellidos", value: apellidos },
+                    { label: "Cargo", value: cargo }
+                ];
+
+                datosPersonales.forEach(dato => {
+                    const item = document.createElement("li");
+                    item.classList.add("result-item");
+                    item.textContent = `${dato.label}: ${dato.value}`;
+                    listaResultados.appendChild(item);
+                });
+
+        
+                for (const key in resultados) {
+                    const item = document.createElement("li");
+                    item.classList.add("result-item");
+                    item.textContent = `${key}: $${resultados[key].toFixed(2)}`;
+                    listaResultados.appendChild(item);
+                }
+
+                document.getElementById("resultados").style.display = "block";
+            } else {
+                alert("Por favor ingrese un salario bruto válido.");
+            }
+        });
+    </script>
+</body>
+</html>
